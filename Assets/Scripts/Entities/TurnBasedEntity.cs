@@ -32,12 +32,12 @@ public class TurnBasedEntity : MonoBehaviour
         }
 
         currentHealth -= finalDamage;
-        fightUI.Log($"<color=#ff66ffff>{gameObject.name}</color> took <color=\"yellow\">{finalDamage.ToString("n1")}</color> {attack.type} damage! Remaining HP: <color=\"yellow\">{currentHealth.ToString("n1")}</color>");
+        fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> took <color={TextColors.DAMAGE_NUMBER}>{finalDamage.ToString("n1")}</color> {attack.type} damage! Remaining HP: <color={TextColors.DAMAGE_NUMBER}>{currentHealth.ToString("n1")}</color>");
         yield return new WaitForSeconds(0.8f);
 
         if (hasCrit)
         {
-            fightUI.Log("<color=\"yellow\">Critical hit!</color>");
+            fightUI.Log($"<color={TextColors.DAMAGE_NUMBER}>Critical hit!</color>");
             yield return new WaitForSeconds(0.8f);
         }
 
@@ -52,6 +52,8 @@ public class TurnBasedEntity : MonoBehaviour
         if (currentHealth <= 0) yield break; 
         Animator animator = GetComponent<Animator>();
         animator.Play("vic_attack");
+
+        fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> attacks <color={TextColors.ENTITY_NAME}>{target.gameObject.name}</color> with {currentAttack.attackName}!");
         
         float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSecondsRealtime(animationLength);
@@ -68,12 +70,13 @@ public class TurnBasedEntity : MonoBehaviour
 
     public Dictionary<string, float> GetCurrentStats()
     {
-        Dictionary<string, float> statsDict = new Dictionary<string, float>();
-
-        statsDict["currentHealth"] = currentHealth;
-        statsDict["maxHealth"] = stats.maxHealth;
-        statsDict["currentMana"] = currentMana;
-        statsDict["maxMana"] = stats.maxMana;
+        Dictionary<string, float> statsDict = new()
+        {
+            ["currentHealth"] = currentHealth,
+            ["maxHealth"] = stats.maxHealth,
+            ["currentMana"] = currentMana,
+            ["maxMana"] = stats.maxMana
+        };
 
         return statsDict;
     }
