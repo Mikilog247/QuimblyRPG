@@ -50,6 +50,12 @@ public class TurnBasedEntity : MonoBehaviour
     public IEnumerator SendAttack(TurnBasedEntity target)
     {
         if (currentHealth <= 0) yield break; 
+        Animator animator = GetComponent<Animator>();
+        animator.Play("vic_attack");
+        
+        float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSecondsRealtime(animationLength);
+
         yield return target.ReceiveAttack(currentAttack, this);
     }
 
