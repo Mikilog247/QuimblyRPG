@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 138915786b0fc634abc1060bc59c89fc, type: 3}
   m_Name: Tackle
   m_EditorClassIdentifier: 
+  attackName: Tackle
   power: 20
   manaCost: 20
-  critChange: 0.15
+  critChance: 0.15
   type: 0

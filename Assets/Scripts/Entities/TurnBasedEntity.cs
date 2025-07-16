@@ -7,6 +7,8 @@ public class TurnBasedEntity : MonoBehaviour
     public EntityStats stats;
     public AttackData currentAttack;
 
+    public string animationPrefix = "vic_";
+
     [HideInInspector]
     public FightUI fightUI;
 
@@ -51,7 +53,7 @@ public class TurnBasedEntity : MonoBehaviour
     {
         if (currentHealth <= 0) yield break; 
         Animator animator = GetComponent<Animator>();
-        animator.Play("vic_attack");
+        animator.Play(animationPrefix + "attack");
 
         fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> attacks <color={TextColors.ENTITY_NAME}>{target.gameObject.name}</color> with {currentAttack.attackName}!");
         
