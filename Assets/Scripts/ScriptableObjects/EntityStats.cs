@@ -7,4 +7,7 @@ public class EntityStats : ScriptableObject
     public float maxMana = 100.0f;
     public float attackPower = 1.0f;
     public float defense = 5.0f;
+    public int level = 5;
+
+    public AttackType type = AttackType.Physical;
 }

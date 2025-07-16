@@ -8,7 +8,7 @@ public class GameEventManager : MonoBehaviour
     public FightData fightData;
     public FightUI fightUI;
 
-    private bool playerWantsToAttack = false;
+    [HideInInspector] public TurnBasedEntity currentAlly;
 
     void Start()
     {
@@ -18,7 +18,7 @@ public class GameEventManager : MonoBehaviour
 
     void OnAttackButtonClicked()
     {
-        playerWantsToAttack = true;
+        fightUI.ShowAttackButtons(currentAlly);
     }
 
     IEnumerator TurnLoop()
@@ -28,27 +28,28 @@ public class GameEventManager : MonoBehaviour
 
         while (true)
         {
+            currentAlly = allies.transform.GetChild(0).GetComponent<TurnBasedEntity>();
             // Wait for player to click AttackButton
             fightUI.Log("Waiting for player input...");
-            playerWantsToAttack = false;  // reset
-            yield return new WaitUntil(() => playerWantsToAttack);
+            fightUI.playerWantsToAttack = false; 
+            yield return new WaitUntil(() => fightUI.playerWantsToAttack);
 
             fightData.currentRound++;
 
             // Do player's attack
             if (allies.transform.childCount > 0 && enemies.transform.childCount > 0)
             {
-                TurnBasedEntity allyEntity = allies.transform.GetChild(0).GetComponent<TurnBasedEntity>();
                 TurnBasedEntity enemyEntity = enemies.transform.GetChild(0).GetComponent<TurnBasedEntity>();
 
-                allyEntity.fightUI = fightUI;
+                currentAlly.fightUI = fightUI;
                 enemyEntity.fightUI = fightUI;
 
-                if (allyEntity != null && enemyEntity != null)
+                if (currentAlly != null && enemyEntity != null)
                 {
-                    yield return StartCoroutine(allyEntity.SendAttack(enemyEntity));
 
-                    yield return StartCoroutine(enemyEntity.SendAttack(allyEntity));
+                    yield return StartCoroutine(currentAlly.SendAttack(enemyEntity));
+
+                    yield return StartCoroutine(enemyEntity.SendAttack(currentAlly));
 
                 }
             }
