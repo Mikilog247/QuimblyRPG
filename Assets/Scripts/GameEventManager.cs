@@ -49,6 +49,7 @@ public class GameEventManager : MonoBehaviour
 
                     yield return StartCoroutine(currentAlly.SendAttack(enemyEntity));
 
+                    enemyEntity.currentAttack = enemyEntity.attacks[Random.Range(0, enemyEntity.attacks.Length)];
                     yield return StartCoroutine(enemyEntity.SendAttack(currentAlly));
 
                 }

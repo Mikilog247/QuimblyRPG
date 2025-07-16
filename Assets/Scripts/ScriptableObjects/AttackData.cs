@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public enum AttackType
 {
@@ -93,7 +94,7 @@ public static class TypeEffectiveness
                 [AttackType.Ice] = 1.0f,
                 [AttackType.Lightning] = 1.0f,
                 [AttackType.Poison] = 1.0f,
-                [AttackType.Water] = 0.5f,
+                [AttackType.Water] = 1.0f,
                 [AttackType.Grass] = 0.5f,
             },
             [AttackType.Grass] = new Dictionary<AttackType, float>
@@ -111,13 +112,16 @@ public static class TypeEffectiveness
 }
 
 [CreateAssetMenu(fileName = "AttackData", menuName = "Scriptable Objects/AttackData")]
-public class AttackData : ScriptableObject
+public abstract class AttackData : ScriptableObject
 {
     public string attackName = "Basic Attack";
+    [TextArea(4, 8)]
     public string description = "A basic attack that deals damage.";
 
     public float power = 20.0f;
     public float manaCost = 20.0f;
     public float critChance = 0.15f;
     public AttackType type = AttackType.Physical;
+
+    public abstract IEnumerator Execute(TurnBasedEntity attacker, TurnBasedEntity target, AttackData data);
 }

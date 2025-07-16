@@ -1,11 +1,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.UI;
+using Unity.VisualScripting;
 
 public class TurnBasedEntity : MonoBehaviour
 {
     public EntityStats stats;
     public AttackData[] attacks;
+    public Slider healthBar;
 
     public string animationPrefix = "vic_";
 
@@ -20,7 +23,15 @@ public class TurnBasedEntity : MonoBehaviour
         currentHealth = stats.maxHealth;
         currentMana = stats.maxMana;
     }
-    
+
+    void Update()
+    {
+        if (healthBar != null)
+        {
+            healthBar.value = Mathf.Lerp(healthBar.value, currentHealth / stats.maxHealth, 5f * Time.deltaTime);
+        }
+    }
+
     float CalculateDamage(AttackData attack, TurnBasedEntity attacker)
     {
         TurnBasedEntity defender = this;
@@ -38,7 +49,7 @@ public class TurnBasedEntity : MonoBehaviour
         return Mathf.Max(1f, finalDamage);
     }
 
-    public IEnumerator ReceiveAttack(AttackData attack, TurnBasedEntity opponent)
+    public IEnumerator ReceiveAttack(AttackData attack, TurnBasedEntity opponent, System.Action<float> callback = null)
     {
         bool hasCrit = false;
 
@@ -49,13 +60,15 @@ public class TurnBasedEntity : MonoBehaviour
         if (typeResistance != 1.0f && (!hasCrit || typeResistance > 1.0f))
         {
             string effectivenessText = typeResistance > 1.0f
-                ? "<color={TextColors.TYPE_EFFECTIVENESS}>It's super effective!</color>"
-                : "<color={TextColors.TYPE_EFFECTIVENESS}>It's not very effective...</color>";
+                ? $"<color={TextColors.TYPE_EFFECTIVENESS}>It's super effective!</color>"
+                : $"<color={TextColors.TYPE_EFFECTIVENESS}>It's not very effective...</color>";
 
             fightUI.Log(effectivenessText);
             finalDamage *= typeResistance;
             yield return new WaitForSeconds(0.8f);
         }
+
+        callback?.Invoke(finalDamage);
 
         currentHealth -= finalDamage;
         fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> took <color={TextColors.DAMAGE_NUMBER}>{finalDamage.ToString("n1")}</color> {attack.type} damage! Remaining HP: <color={TextColors.DAMAGE_NUMBER}>{currentHealth.ToString("n1")}</color>");
@@ -79,12 +92,12 @@ public class TurnBasedEntity : MonoBehaviour
         Animator animator = GetComponent<Animator>();
         animator.Play(animationPrefix + "attack");
 
-        fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> attacks <color={TextColors.ENTITY_NAME}>{target.gameObject.name}</color> with {currentAttack.attackName}!");
+        fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> used {currentAttack.attackName}!");
 
         float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
         yield return new WaitForSecondsRealtime(animationLength);
 
-        yield return target.ReceiveAttack(currentAttack, this);
+        yield return currentAttack.Execute(this, target, currentAttack);
     }
 
     public IEnumerator Die()
@@ -109,11 +122,17 @@ public class TurnBasedEntity : MonoBehaviour
 
     public float GetTypeResistance(AttackType attackingType)
     {
-        if (TypeEffectiveness.Chart.TryGetValue(stats.type, out var vsDict) &&
-            vsDict.TryGetValue(attackingType, out var resistance))
+        if (TypeEffectiveness.Chart.TryGetValue(attackingType, out var vsDict) &&
+            vsDict.TryGetValue(stats.type, out var resistance))
         {
             return resistance;
         }
         return 1.0f; // default if missing
+    }
+    
+    public void AddHealth(float amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, stats.maxHealth);
+        fightUI.Log($"<color={TextColors.ENTITY_NAME}>{gameObject.name}</color> heals for <color={TextColors.DAMAGE_NUMBER}>{amount.ToString("n1")}</color> HP! Current HP: <color={TextColors.DAMAGE_NUMBER}>{currentHealth.ToString("n1")}</color>");
     }
 }
